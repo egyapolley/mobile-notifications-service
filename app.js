@@ -31,9 +31,7 @@ const messagesDB = {}
 
 const messageTypesMap = {}
 
-const testNumbers = [
-    "233255000102",
-]
+const testNumbers = ["233255000102", "233255020352", "233255020335", "233255000972", "233255000973"]
 
 
 mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
@@ -71,6 +69,8 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
             });
 
             req.on("end", async () => {
+                let surflineNumber=null;
+                let  requestBody = null;
 
                 try {
                     let jsonObject = parser.parse(alldata);
@@ -79,7 +79,7 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
                     let to_msisdn = soapBody.phoneContact.toString();
                     let messageId = soapBody.smsId.toString();
                     let messageType = soapBody.messageType.toString()
-                    let surflineNumber = soapBody.callingSubscriber.toString();
+                    surflineNumber = soapBody.callingSubscriber.toString();
 
                     let smsBody = messagesDB[messageId] ? messagesDB[messageId] : null;
                     let smsTitle = messageTypesMap[messageType] ? messageTypesMap[messageType] : null;
@@ -118,24 +118,35 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
                         return res.end("success")
                     }
 
-                    const requestBody = {
+                    requestBody = {
                         msisdn: surflineNumber,
                         title: smsTitle,
                         message: smsBody,
                         contact: to_msisdn
                     }
-                    const {
-                        status,
-                        data: responseBody
-                    } = await axios.post(PUSH_URL, requestBody, {headers: {Authorization: PUSH_AUTH}})
+                    const response = await axios.post(PUSH_URL, requestBody, {headers: {Authorization: PUSH_AUTH}})
+                    const {status, data: responseBody} = response;
 
-                    const log = new Log({surflineNumber, status, requestBody:JSON.stringify(requestBody), responseBody:JSON.stringify(responseBody)})
+                    const log = new Log({
+                        surflineNumber,
+                        status,
+                        requestBody: JSON.stringify(requestBody),
+                        responseBody: JSON.stringify(responseBody)
+                    })
                     await log.save()
                     res.end("success")
 
 
                 } catch (error) {
-                    console.log(error);
+                    const {status, data: responseBody} = error.response;
+                    const log = new Log({
+                        surflineNumber,
+                        status,
+                        requestBody: JSON.stringify(requestBody),
+                        responseBody: JSON.stringify(responseBody)
+                    })
+                    await log.save()
+
                     res.end("success")
 
                 }

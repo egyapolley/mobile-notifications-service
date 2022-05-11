@@ -31,7 +31,7 @@ const messagesDB = {}
 
 const messageTypesMap = {}
 
-const testNumbers = ["233255000102", "233255020352", "233255020335", "233255000972", "233255000973"]
+const testNumbers = []
 
 
 mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {

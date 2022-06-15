@@ -31,7 +31,7 @@ const messagesDB = {}
 
 const messageTypesMap = {}
 
-const testNumbers = []
+//const testNumbers = []
 
 
 mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
@@ -112,11 +112,11 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
                     if (!smsBody) return res.end("success")
 
                     smsBody = smsBody.replace("XXXXXX", surflineNumber.replace(/^233/, "0"))
-
+/*
                     if (!testNumbers.includes(surflineNumber)) {
                         await pushSMS(smsBody, to_msisdn)
                         return res.end("success")
-                    }
+                    }*/
 
                     requestBody = {
                         msisdn: surflineNumber,

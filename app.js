@@ -80,6 +80,7 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
                     let messageId = soapBody.smsId.toString();
                     let messageType = soapBody.messageType.toString()
                     surflineNumber = soapBody.callingSubscriber.toString();
+                    let otherDetails = soapBody.details && soapBody.details.toString() !== 'NULL'? soapBody.details.toString():null;
 
                     let smsBody = messagesDB[messageId] ? messagesDB[messageId] : null;
                     let smsTitle = messageTypesMap[messageType] ? messageTypesMap[messageType] : null;
@@ -109,9 +110,15 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
                         })
                     }
 
+
+
                     if (!smsBody) return res.end("success")
 
                     smsBody = smsBody.replace("XXXXXX", surflineNumber.replace(/^233/, "0"))
+                    if(messageId === '900' && otherDetails){
+                        smsBody =smsBody.replace("SSSSSS", otherDetails)
+
+                    }
 /*
                     if (!testNumbers.includes(surflineNumber)) {
                         await pushSMS(smsBody, to_msisdn)
@@ -138,6 +145,7 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
 
 
                 } catch (error) {
+
                     const {status, data: responseBody} = error.response;
                     const log = new Log({
                         surflineNumber,

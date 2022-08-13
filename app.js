@@ -119,11 +119,11 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
                         smsBody =smsBody.replace("SSSSSS", otherDetails)
 
                     }
-/*
-                    if (!testNumbers.includes(surflineNumber)) {
-                        await pushSMS(smsBody, to_msisdn)
+
+                    if (messageType === '2') {
+                        await pushSMS(smsBody, to_msisdn,surflineNumber)
                         return res.end("success")
-                    }*/
+                    }
 
                     requestBody = {
                         msisdn: surflineNumber,
@@ -173,7 +173,7 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
 })
 
 
-async function pushSMS(smsContent, to_msisdn) {
+async function pushSMS(smsContent, to_msisdn,surflineNumber) {
 
     const {SMS_URL, SMS_AUTH} = process.env
 
@@ -187,7 +187,14 @@ async function pushSMS(smsContent, to_msisdn) {
         RegisteredDelivery: true
     };
 
-    return axios.post(SMS_URL, messageBody, {headers: {Authorization: SMS_AUTH}})
+     axios.post(SMS_URL, messageBody, {headers: {Authorization: SMS_AUTH}})
+         .then(({data}) =>{
+             console.log(`Data Exhaustion SMS: ${surflineNumber} `)
+             console.log(data)
+
+         }).catch(error =>{
+             console.log(error)
+     })
 
 
 }

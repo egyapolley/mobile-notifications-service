@@ -69,8 +69,8 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
             });
 
             req.on("end", async () => {
-                let surflineNumber=null;
-                let  requestBody = null;
+                let surflineNumber = null;
+                let requestBody = null;
 
                 try {
                     let jsonObject = parser.parse(alldata);
@@ -78,12 +78,12 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
 
                     let to_msisdn = soapBody.phoneContact.toString();
                     let messageId = soapBody.smsId.toString();
-                    let messageType = soapBody.messageType.toString()
+                    let messageType = soapBody.messageType ? soapBody.messageType.toString() : "2"
                     surflineNumber = soapBody.callingSubscriber.toString();
-                    let otherDetails = soapBody.details && soapBody.details.toString() !== 'NULL'? soapBody.details.toString():null;
+                    let otherDetails = soapBody.details && soapBody.details.toString() !== 'NULL' ? soapBody.details.toString() : null;
 
                     let smsBody = messagesDB[messageId] ? messagesDB[messageId] : null;
-                    let smsTitle = messageTypesMap[messageType] ? messageTypesMap[messageType] : null;
+                    let smsTitle =messageType? messageTypesMap[messageType] ? messageTypesMap[messageType] : null:null;
 
                     if (!messagesDB[messageId]) {
                         pool.query("select * from Messages where id = ?", [messageId], (err, rows) => {
@@ -106,22 +106,23 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
                                 smsTitle = rows[0].name
                             }
 
-
                         })
                     }
 
 
-
                     if (!smsBody) return res.end("success")
 
+                    surflineNumber = surflineNumber.startsWith("255")?`0${surflineNumber}`:surflineNumber
+
                     smsBody = smsBody.replace("XXXXXX", surflineNumber.replace(/^233/, "0"))
-                    if(messageId === '900' && otherDetails){
-                        smsBody =smsBody.replace("SSSSSS", otherDetails)
+                    if (messageId === '900' && otherDetails) {
+                        smsBody = smsBody.replace("SSSSSS", otherDetails)
 
                     }
 
+
                     if (messageType === '2') {
-                        await pushSMS(smsBody, to_msisdn,surflineNumber)
+                        await pushSMS(smsBody, to_msisdn, surflineNumber)
                         return res.end("success")
                     }
 
@@ -173,7 +174,7 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
 })
 
 
-async function pushSMS(smsContent, to_msisdn,surflineNumber) {
+async function pushSMS(smsContent, to_msisdn, surflineNumber) {
 
     const {SMS_URL, SMS_AUTH} = process.env
 
@@ -187,14 +188,14 @@ async function pushSMS(smsContent, to_msisdn,surflineNumber) {
         RegisteredDelivery: true
     };
 
-     axios.post(SMS_URL, messageBody, {headers: {Authorization: SMS_AUTH}})
-         .then(({data}) =>{
-             console.log(`Data Exhaustion SMS: ${surflineNumber} `)
-             console.log(data)
+    axios.post(SMS_URL, messageBody, {headers: {Authorization: SMS_AUTH}})
+        .then(({data}) => {
+            console.log(`Data Exhaustion SMS: ${surflineNumber} `)
+            console.log(data)
 
-         }).catch(error =>{
-             console.log(error)
-     })
+        }).catch(error => {
+        console.log(error)
+    })
 
 
 }

@@ -86,7 +86,7 @@ mongoose.connect("mongodb://localhost/mobileAppPUSHNotif", {
                     let smsTitle =messageType? messageTypesMap[messageType] ? messageTypesMap[messageType] : null:null;
 
                     if (!messagesDB[messageId]) {
-                        pool.query("select * from Messages where id = ?", [messageId], (err, rows) => {
+                        pool.query("select * from Messages where id = ?", [parseInt(messageId)], (err, rows) => {
                             if (err) console.log(err)
 
                             if (rows.length > 0) {
